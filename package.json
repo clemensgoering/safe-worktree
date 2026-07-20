@@ -1,6 +1,6 @@
 {
   "name": "safe-worktree",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Run a coding agent against a developer's working tree without being able to damage it.",
   "keywords": [
     "git",
