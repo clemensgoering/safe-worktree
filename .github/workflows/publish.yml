@@ -5,6 +5,7 @@ name: Publish
 on:
   release:
     types: [published]
+  workflow_dispatch: # republish the current package.json version after a workflow fix
 
 jobs:
   publish:
@@ -26,6 +27,14 @@ jobs:
           git config --global user.email "ci@example.com"
           git config --global user.name "CI"
           git config --global init.defaultBranch main
+
+      # Node 22 bundles npm 10.x, which cannot do the OIDC handshake that
+      # trusted publishing needs — it silently falls back to token auth and
+      # fails. Trusted publishing requires npm >= 11.5.1.
+      - name: Upgrade npm for trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm -v
 
       - run: npm ci
       - run: npm run build
