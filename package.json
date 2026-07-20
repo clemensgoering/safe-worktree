@@ -2,16 +2,30 @@
   "name": "agent-worktree",
   "version": "0.1.0",
   "description": "Run a coding agent against a developer's working tree without being able to damage it.",
-  "keywords": ["git", "worktree", "agent", "llm", "sandbox", "snapshot"],
+  "keywords": [
+    "git",
+    "worktree",
+    "agent",
+    "llm",
+    "sandbox",
+    "snapshot"
+  ],
   "license": "MIT",
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md", "SECURITY.md", "LICENSE"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc -p .",
-    "test": "tsc -p . && node --test dist/**/*.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/**/*.test.js",
     "prepublishOnly": "npm test"
   },
   "devDependencies": {
