@@ -1,10 +1,10 @@
-# agent-worktree
+# safe-worktree
 
 Run a coding agent against a developer's working tree without being able to
 damage it.
 
 ```bash
-npm install agent-worktree
+npm install safe-worktree
 ```
 
 ## The problem
@@ -34,7 +34,7 @@ they ignore the branch and lose nothing.
 ## Usage
 
 ```ts
-import { Worktree, resolveInside, assertDeletable } from "agent-worktree";
+import { Worktree, resolveInside, assertDeletable } from "safe-worktree";
 import { readFile, writeFile, unlink } from "node:fs/promises";
 
 const wt = await Worktree.create({
@@ -70,7 +70,7 @@ git merge --no-ff agent/task-1234-20260719-142233
 agent-supplied path through the policy layer before touching the filesystem:
 
 ```ts
-import { resolveInside, assertDeletable, PolicyViolation } from "agent-worktree";
+import { resolveInside, assertDeletable, PolicyViolation } from "safe-worktree";
 
 try {
   const { absolute, relative } = await resolveInside(wt.policy, agentPath);
@@ -98,7 +98,7 @@ the worktree, and a case-insensitive deny-list covering `.env*`, `.git/`,
 and a git administrative entry behind:
 
 ```ts
-import { listWorktrees, pruneWorktrees, removeWorktrees } from "agent-worktree";
+import { listWorktrees, pruneWorktrees, removeWorktrees } from "safe-worktree";
 
 await pruneWorktrees(repo);   // clear entries whose directory is gone
 await removeWorktrees(repo);  // remove leftover worktrees this library created
@@ -156,7 +156,7 @@ Read [SECURITY.md](SECURITY.md) before relying on this. In short:
 ## Status
 
 Extracted from a working product where it has been running in anger, but the
-package itself is new. 34 tests cover the guarantees above. Bug reports very
+package itself is new. 76 tests cover the guarantees above. Bug reports very
 welcome; API may shift before 1.0.
 
 ## License

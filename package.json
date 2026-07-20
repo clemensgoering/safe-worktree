@@ -1,5 +1,5 @@
 {
-  "name": "agent-worktree",
+  "name": "safe-worktree",
   "version": "0.1.0",
   "description": "Run a coding agent against a developer's working tree without being able to damage it.",
   "keywords": [
@@ -11,11 +11,29 @@
     "snapshot"
   ],
   "license": "MIT",
+  "author": "Clemens Huck <mail@c-huck.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clemensgoering/safe-worktree.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clemensgoering/safe-worktree/issues"
+  },
+  "homepage": "https://github.com/clemensgoering/safe-worktree#readme",
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
+    "src",
+    "!src/**/*.test.ts",
     "README.md",
     "SECURITY.md",
     "LICENSE"

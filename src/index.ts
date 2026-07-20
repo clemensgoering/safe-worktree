@@ -1,5 +1,5 @@
 /**
- * agent-worktree — run a coding agent against a developer's working tree
+ * safe-worktree — run a coding agent against a developer's working tree
  * without being able to damage it.
  *
  * The problem this solves: an agent that edits files in place can destroy
