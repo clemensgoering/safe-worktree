@@ -51,6 +51,8 @@ export async function resolveInside(
   ctx: PolicyContext,
   requested: string,
 ): Promise<{ absolute: string; relative: string }> {
+  assertWellFormed(requested);
+
   if (isAbsolute(requested)) {
     throw new PolicyViolation(
       `Absolute paths are not accepted: ${requested}`,
@@ -93,6 +95,55 @@ export async function resolveInside(
 
   assertNotDenied(relFromWorktree);
   return { absolute: candidate, relative: relFromWorktree };
+}
+
+/**
+ * Rejects paths whose *text* is dangerous, before any resolution happens.
+ *
+ * Each of these is a way to make the string that gets validated differ from the
+ * file that eventually gets opened:
+ *
+ *   - NUL truncates a path at the C-string layer. Node rejects it today, but a
+ *     path that passes validation and cannot be used is a lie either way.
+ *   - Windows silently strips trailing dots and spaces, so ".env " opens ".env"
+ *     while the deny-list sees a different name.
+ *   - Windows treats "file:stream" as an alternate data stream of "file";
+ *     ".env::$DATA" is the classic way to read a file whose name is blocked.
+ *     Colons are legal on Unix but a coding agent has no need for them, so they
+ *     are refused everywhere rather than only on Windows — a rule that changes
+ *     by platform is a rule that gets tested on one and shipped on the other.
+ */
+function assertWellFormed(requested: string): void {
+  if (requested.trim() === "") {
+    throw new PolicyViolation("An empty path was requested.", "malformed-path");
+  }
+
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f]/.test(requested)) {
+    throw new PolicyViolation(
+      "Path contains control characters.",
+      "malformed-path",
+    );
+  }
+
+  for (const segment of requested.split(/[/\\]/)) {
+    if (segment === "") continue;
+
+    if (segment !== segment.trimEnd() || segment.endsWith(".") && segment !== "." && segment !== "..") {
+      throw new PolicyViolation(
+        `Path segment '${segment}' ends with a space or dot, which some ` +
+          `filesystems silently strip.`,
+        "malformed-path",
+      );
+    }
+
+    if (segment.includes(":")) {
+      throw new PolicyViolation(
+        `Path segment '${segment}' contains a colon.`,
+        "malformed-path",
+      );
+    }
+  }
 }
 
 export function assertNotDenied(relPath: string): void {

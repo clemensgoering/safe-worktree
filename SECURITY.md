@@ -45,6 +45,27 @@ Each item is covered by a test in `src/worktree.test.ts`.
 | No path escapes the worktree | `realpath` resolution before the boundary check, so symlinks cannot be used as an exit |
 | Secrets are unreachable | Case-insensitive deny-list covering `.env*`, `.git/`, `.ssh/`, `.aws/`, `*.pem`, credentials |
 | Untracked files are never deleted | Hard refusal — git holds no copy, so the deletion would be unrecoverable |
+| Symlinks the agent plants cannot be followed out | The link target is resolved before the boundary check, not after |
+| A validated path is the path that opens | Control characters, trailing dots/spaces and colons are refused, so the string cannot differ from the file |
+
+## Adversarial testing
+
+`src/security.test.ts` holds the attack cases. Every one was run as a live probe
+against the library before being written down, and several passed at the time:
+
+- symlinks planted inside the worktree pointing at `/etc` and at a file in
+  `/tmp`, plus traversal *through* a symlinked directory
+- NUL bytes and newlines embedded in paths
+- trailing spaces and dots, which Windows silently strips — so `.env ` opens
+  `.env` while a deny-list sees a different name
+- Windows alternate data streams, including `.env::$DATA`
+- case variants on every deny-list entry
+- `sessionId` carrying shell metacharacters and path traversal
+
+Two cases are asserted as **allowed**, deliberately: percent-encoded text
+(`%2e%2e%2f…`) and unicode lookalikes (`．env`). Neither is decoded, so both
+name ordinary distinct files. Rejecting them would break legitimate filenames
+for no security gain.
 
 ## What is NOT guaranteed
 
@@ -68,6 +89,15 @@ Be explicit with yourself about these before shipping.
   build output. Usually what you want; occasionally surprising.
 - **No protection against a malicious host application.** This library trusts
   its caller completely.
+- **Time-of-check to time-of-use.** `resolveInside` validates a path; your code
+  then opens it as a separate step. A sufficiently fast attacker could swap a
+  component for a symlink in between. Closing this needs `O_NOFOLLOW` on every
+  segment, which Node does not expose portably. It is out of reach for the
+  stated threat model — a confused model, not a local attacker racing you — but
+  it is a real limitation, not an oversight.
+- **`assertDeletable` compares against the tracked set literally.** Pass it the
+  `relative` value returned by `resolveInside`, not a raw agent-supplied string;
+  `./src/a.ts` and `src/a.ts` are not the same key.
 
 ## Reasoning about the branch
 
